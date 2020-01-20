@@ -1,8 +1,11 @@
 /* custom template */
 html, body {
    height: 100%;
+   width: 100%;
    font-family:verdana,arial,sans-serif;
    color:#555555;
+   width: 100%;
+   
 }
 
 .nav {
@@ -94,6 +97,7 @@ hr {
 }
 
 #main {
+  width: 100%;
    background-color:#e9eaed;
    padding-left:0;
    padding-right:0;
