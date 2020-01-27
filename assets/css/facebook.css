@@ -123,6 +123,17 @@ hr {
     background-color:#393939;
 }
 
+#file-input
+{
+    display: none;
+}
+
+.image-upload img
+{
+    
+    cursor: pointer;
+}
+
 .logo {
   display:block;
   padding:3px;
