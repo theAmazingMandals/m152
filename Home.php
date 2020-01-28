@@ -1,3 +1,23 @@
+<?php
+$servername = "localhost";
+$username = "m152";
+$password = "Super";
+$dbname = "m152";
+
+$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$sql = $dbConnect->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts");
+$sql->execute();
+$posts = $sql->fetchAll();
+
+$sql = $dbConnect->prepare("SELECT medias.idPosts, medias.nomMedia  FROM posts, medias WHERE medias.idPosts = posts.idPosts");
+$sql->execute();
+$media = $sql->fetchAll();
+
+
+
+$dbConnect = null;
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -108,8 +128,34 @@
 										<div class="panel-body">
 											<h1>WELCOME</h1>
 										</div>
-									</div>
 
+									</div>
+									<?php
+									foreach ($posts as $key => $data) {
+										$idPosts = $data['idPosts'];
+										$commentaire = $data['commentaire'];
+										$creationDate = $data['creationDate'];
+										$modificationDate = $data['modificationDate'];
+
+										foreach ($media as $key => $data) {
+											$nomMedia = $data['nomMedia'];
+											$FKidPosts = $data['idPosts'];
+											if ($FKidPosts == $idPosts) {
+												$img = "<img src=\"medias/$nomMedia\" alt=\"post\" >";
+											}			
+										}
+										echo "<div class=\"panel panel-default\">
+										$img
+										<p class=\"lead\">$idPosts $commentaire $creationDate $modificationDate</p>
+										<div class=\"panel-thumbnail\"><img src=\"assets/img/bg_4.jpg\" class=\"img-responsive\"></div>
+										<div class=\"panel-body\">
+										  
+										</div>
+									  </div>";
+									}
+									
+
+									?>
 								</div>
 							</div>
 							<!--/row-->

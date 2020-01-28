@@ -2,26 +2,53 @@
 $extensions = array('.png', '.gif', '.jpg', '.jpeg');
 $dossier = './medias/';
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
-$erreur = "";
+$servername = "localhost";
+$username = "m152";
+$password = "Super";
+$dbname = "m152";
+$lastId = "";
 
 if (isset($_FILES['media'])) {
 
-	$countfiles = count($_FILES['media']['name']);
-
-	for ($i = 0; $i <= $countfiles; $i++) {
-		$filename = $_FILES['media']['name'][$i];
-
-		$extension = strrchr($_FILES['media']['name'], '.');
-
-		if (!in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
-		{
-			$erreur = 'Vous devez uploader un fichier de type png, gif, jpg, jpeg, txt ou doc...';
-		}
-		else {
-			move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
-		}
-		
+	
+	if ($_FILES['media']['name'][0] != "") {
+		$countfiles = count($_FILES['media']['name']);
 	}
+	else {
+		$countfiles = 0;
+	}
+	
+	
+	$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+	$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	$sql = "INSERT INTO posts (commentaire)
+	VALUES ('$commentaire')";
+
+	$dbConnect->exec($sql);
+
+	if ($lastId == "") {
+		$lastId = $dbConnect->lastInsertId();
+	}
+	if ($countfiles > 1) {
+		for ($i = 0; $i < $countfiles; $i++) {
+
+			$filename =  $lastId . "_" . $_FILES['media']['name'][$i];
+			$extension = strrchr($_FILES['media']['name'][$i], '.');
+			$mediaType = $_FILES['media']['type'][$i];
+			if (in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
+	
+				move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
+	
+			$sql = "INSERT INTO medias (typeMedia, nomMedia, idPosts)
+				VALUES ('$mediaType', '$filename', '$lastId')";
+	
+			$dbConnect->exec($sql);
+		}
+	}
+	
+	$conn = null;
+	header('Location: Home.php');
+	exit;
 }
 ?>
 <!DOCTYPE html>
@@ -141,7 +168,7 @@ if (isset($_FILES['media'])) {
 													<img src="./assets/img/upload.png" />
 												</label>
 
-												<input id="file-input" name="media[]" type="file" multiple="multiple" />
+												<input id="file-input"  accept="image/*" name="media[]" type="file" multiple="multiple"  />
 											</div>
 
 
@@ -149,7 +176,9 @@ if (isset($_FILES['media'])) {
 
 										</form>
 									</div>
-									<h1><?php  echo $extension;	?></h1>
+
+									<pre><?php //var_dump($_FILES); echo $countfiles;
+										?></pre>
 								</div>
 
 							</div>
