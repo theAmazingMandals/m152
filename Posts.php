@@ -17,7 +17,9 @@ if (isset($_FILES['media'])) {
 	else {
 		$countfiles = 0;
 	}
-	
+	if ($commentaire == "") {
+		$commentaire = "Nouveau post";
+	}
 	
 	$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 	$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -29,7 +31,8 @@ if (isset($_FILES['media'])) {
 	if ($lastId == "") {
 		$lastId = $dbConnect->lastInsertId();
 	}
-	if ($countfiles > 1) {
+	
+	if ($countfiles > 0) {
 		for ($i = 0; $i < $countfiles; $i++) {
 
 			$filename =  $lastId . "_" . $_FILES['media']['name'][$i];
@@ -177,8 +180,7 @@ if (isset($_FILES['media'])) {
 										</form>
 									</div>
 
-									<pre><?php //var_dump($_FILES); echo $countfiles;
-										?></pre>
+									
 								</div>
 
 							</div>
