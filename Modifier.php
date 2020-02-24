@@ -1,4 +1,5 @@
 <?php
+session_start();
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
@@ -7,6 +8,8 @@ $username = "m152";
 $password = "Super";
 $dbname = "m152";
 $idPost = filter_input(INPUT_GET, "id", FILTER_SANITIZE_STRING);
+$newCommentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
+$_SESSION['idPost'] = $idPost;
 
 try {
     $dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
@@ -15,8 +18,22 @@ try {
     die("Impossible de se connecter à la base : " . $e->getMessage());
 }
 
+if (isset($_POST)) {
+	try {
+		$dbConnect->beginTransaction();
+    	$sql = $dbConnect->prepare("UPDATE posts set commentaire = '".$newCommentaire."'");   
+    	$sql->execute();
+    	$dbConnect->commit();
+	} catch (Exception $e) {
+		$dbConnect->rollback();
+		throw $e;
+		} 
+		header('Location: Home.php');
+		exit;  
+}
+
 $dbConnect->beginTransaction();
-    $sql = $dbConnect->prepare("SELECT nomMedia, typeMedia from medias where idPosts = '".$idPost."'");   
+    $sql = $dbConnect->prepare("SELECT idMedias, nomMedia, typeMedia from medias where idPosts = '".$idPost."'");   
     $sql->execute();
     $fetchall = $sql->fetchAll();
 
@@ -24,7 +41,7 @@ $dbConnect->beginTransaction();
     $sql = $dbConnect->prepare("SELECT commentaire from posts where idPosts = '".$idPost."'");   
     $sql->execute();
     $fetch = $sql->fetch();
-    echo $fetch['commentaire'];
+    
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -131,7 +148,7 @@ $dbConnect->beginTransaction();
 										</div>
 									</div>
 									<div class="well">
-										<form class="form-horizontal" method="post" action="Posts.php" enctype="multipart/form-data" role="form">
+										<form class="form-horizontal" method="post" action="Modifier.php" enctype="multipart/form-data" role="form">
 											<h4>Veuillez choisir</h4>
 											<div class="form-group" style="padding:14px;">
 												<textarea class="form-control" placeholder="<?php echo $fetch['commentaire'];?>" name="commentaire"></textarea>
@@ -139,21 +156,23 @@ $dbConnect->beginTransaction();
                                             <?php 
                                             foreach ($fetchall as $key => $files) {   
                                                 if (in_array($files['typeMedia'], $extensionsImage)) {
-													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/" . $files['nomMedia'] . "\" alt=\"post\" >";
+													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/" . $files['nomMedia'] . "\" alt=\"post\" >
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
+												
 												}
 												elseif (in_array($files['typeMedia'], $extensionsVideo)){
 													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
-													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia'] . "\">			  
-												  </video>";
+													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia'] . "\"></video>
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
 												}
 												elseif (in_array($files['typeMedia'], $extensionsSon)) {
 													echo "<audio style=\"margin-left: 10px;\" controls>
-													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia']. "\">			  
-												  </audio>";
+													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia']. "\"></audio>
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
 												}
                                             }
                                             ?>
-											<button class="btn btn-primary pull-right" type="submit">Post</button>
+											<button class="btn btn-primary pull-right" type="submit">Modifier</button>
 
 											<div class="image-upload">
 												<label for="file-input">

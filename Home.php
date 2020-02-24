@@ -147,10 +147,10 @@ $dbConnect = null;
 											
 											if ($idPosts == $FKidPosts) {
 												if (in_array($typeMedia, $extensionsImage)) {
-													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/$nomMedia\" alt=\"post\" >";
+													echo "<img style=\"margin-left: 10px;\" width=\"200\" height=\"200\" src=\"medias/$nomMedia\" alt=\"post\" >";
 												}
 												elseif (in_array($typeMedia, $extensionsVideo)){
-													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
+													echo "<video style=\"margin-left: 10px;\" width=\"200\" height=\"200\" controls>
 													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
 												  </video>";
 												}
