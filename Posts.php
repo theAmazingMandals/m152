@@ -1,5 +1,5 @@
 <?php
-$extensions = array('.png', '.gif', '.jpg', '.jpeg');
+$extensions = array('.png', '.gif', '.jpg', '.jpeg', '.PNG', '.GIF', '.JPG', '.JPEG', '.mp3', '.avi', '.mp4');
 $dossier = './medias/';
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
 $servername = "localhost";
@@ -20,17 +20,24 @@ if (isset($_FILES['media'])) {
 	if ($commentaire == "") {
 		$commentaire = "Nouveau post";
 	}
-	
-	$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-	$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	$sql = "INSERT INTO posts (commentaire)
-	VALUES ('$commentaire')";
-
-	$dbConnect->exec($sql);
-
-	if ($lastId == "") {
-		$lastId = $dbConnect->lastInsertId();
+	try {
+		$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+		$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	} catch (Exception $e) {
+		die("Impossible de se connecter à la base : " . $e->getMessage());
 	}
+	
+	try {
+		$dbConnect->beginTransaction();
+		$sql = "INSERT INTO posts (commentaire)
+		VALUES ('$commentaire')";
+		$dbConnect->exec($sql);
+
+		if ($lastId == "") {
+			$lastId = $dbConnect->lastInsertId();
+		}
+		$dbConnect->commit();
+	
 	
 	if ($countfiles > 0) {
 		for ($i = 0; $i < $countfiles; $i++) {
@@ -41,15 +48,20 @@ if (isset($_FILES['media'])) {
 			if (in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
 	
 				move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
-	
+			
 			$sql = "INSERT INTO medias (typeMedia, nomMedia, idPosts)
 				VALUES ('$mediaType', '$filename', '$lastId')";
 	
 			$dbConnect->exec($sql);
 		}
 	}
-	
+	} catch (Exception $e) {
+	$dbConnect->rollback();
+	throw $e;
+	}
+
 	$conn = null;
+	
 	header('Location: Home.php');
 	exit;
 }
@@ -171,7 +183,7 @@ if (isset($_FILES['media'])) {
 													<img src="./assets/img/upload.png" />
 												</label>
 
-												<input id="file-input"  accept="image/*" name="media[]" type="file" multiple="multiple"  />
+												<input id="file-input" accept="image/*, video/*, audio/*" name="media[]" type="file" multiple="multiple"  />
 											</div>
 
 
@@ -199,6 +211,7 @@ if (isset($_FILES['media'])) {
 							<hr>
 
 							<h4 class="text-center">
+								
 								<p>©Copyright Christian Russo</p>
 							</h4>
 

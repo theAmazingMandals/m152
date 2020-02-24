@@ -4,13 +4,17 @@ $username = "m152";
 $password = "Super";
 $dbname = "m152";
 $img = "";
+$extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
+$extensionsSon = array('audio/mp3');
+$extensionsVideo = array( 'video/avi', 'video/mp4');
+
 $dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 $dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$sql = $dbConnect->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts");
+$sql = $dbConnect->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts ORDER BY creationDate DESC");
 $sql->execute();
 $posts = $sql->fetchAll();
 
-$sql = $dbConnect->prepare("SELECT medias.idPosts, medias.nomMedia  FROM posts, medias WHERE medias.idPosts = posts.idPosts");
+$sql = $dbConnect->prepare("SELECT medias.idPosts, medias.nomMedia, medias.typeMedia  FROM posts, medias WHERE medias.idPosts = posts.idPosts");
 $sql->execute();
 $media = $sql->fetchAll();
 
@@ -116,13 +120,6 @@ $dbConnect = null;
 
 								<!-- main col right -->
 								<div class="col-sm-7">
-
-
-
-
-
-
-
 									<div class="panel panel-default">
 
 										<div class="panel-body">
@@ -130,6 +127,7 @@ $dbConnect = null;
 										</div>
 
 									</div>
+									
 									<?php
 									foreach ($posts as $key => $data) {
 										$idPosts = $data['idPosts'];
@@ -139,27 +137,44 @@ $dbConnect = null;
 
 										echo "<div class=\"panel panel-default\">
 										
-										<p class=\"lead\">$commentaire | $creationDate</p>";
+										<h2 style=\"margin-left: 10px;\">$commentaire | $creationDate</h2>";
 										
 										foreach ($media as $key => $data) {
 											
 											$nomMedia = $data['nomMedia'];
+											$typeMedia = $data['typeMedia'];
 											$FKidPosts = $data['idPosts'];
 											
 											if ($idPosts == $FKidPosts) {
-												echo "<img width=\"400\" height=\"400\" src=\"medias/$nomMedia\" alt=\"post\" >";
+												if (in_array($typeMedia, $extensionsImage)) {
+													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/$nomMedia\" alt=\"post\" >";
+												}
+												elseif (in_array($typeMedia, $extensionsVideo)){
+													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
+													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
+												  </video>";
+												}
+												elseif (in_array($typeMedia, $extensionsSon)) {
+													echo "<audio style=\"margin-left: 10px;\" controls>
+													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
+												  </audio>";
+												}
+												
 											}
 										}
 										
 										
 										echo "<div class=\"panel-body\">
-										  
+										<a href=\"Supprimer.php?id=$idPosts\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>
+										<a href=\"Modifier.php?id=$idPosts\"><img src=\"./assets/img/modifier.png\" alt=\"Modifier\"/></a>
+										
 										</div>
 									  </div>";
 									}
 
-
+									
 									?>
+									
 								</div>
 							</div>
 							<!--/row-->
