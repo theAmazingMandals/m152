@@ -8,6 +8,7 @@ $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'i
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
 
+
 $dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 $dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $sql = $dbConnect->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts ORDER BY creationDate DESC");
@@ -77,18 +78,7 @@ $dbConnect = null;
 								</li>
 
 							</ul>
-							<ul class="nav navbar-nav navbar-right">
-								<li class="dropdown">
-									<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i></a>
-									<ul class="dropdown-menu">
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-									</ul>
-								</li>
-							</ul>
+							
 						</nav>
 					</div>
 					<!-- /top nav -->
@@ -147,17 +137,17 @@ $dbConnect = null;
 											
 											if ($idPosts == $FKidPosts) {
 												if (in_array($typeMedia, $extensionsImage)) {
-													echo "<img style=\"margin-left: 10px;\" width=\"200\" height=\"200\" src=\"medias/$nomMedia\" alt=\"post\" >";
+													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/$nomMedia\" alt=\"post\" ><br>";
 												}
 												elseif (in_array($typeMedia, $extensionsVideo)){
-													echo "<video style=\"margin-left: 10px;\" width=\"200\" height=\"200\" controls>
+													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
 													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
-												  </video>";
+												  </video><br>";
 												}
 												elseif (in_array($typeMedia, $extensionsSon)) {
 													echo "<audio style=\"margin-left: 10px;\" controls>
 													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
-												  </audio>";
+												  </audio><br>";
 												}
 												
 											}

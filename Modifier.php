@@ -1,14 +1,17 @@
 <?php
 session_start();
+$extensions = array('.png', '.gif', '.jpg', '.jpeg', '.PNG', '.GIF', '.JPG', '.JPEG', '.mp3', '.avi', '.mp4');
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
+$dossier = './medias/';
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
 $idPost = filter_input(INPUT_GET, "id", FILTER_SANITIZE_STRING);
 $newCommentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
+
 $_SESSION['idPost'] = $idPost;
 
 try {
@@ -19,17 +22,47 @@ try {
 }
 
 if (isset($_POST)) {
+
+	if ($newCommentaire != "" || $_FILES['media'] != null) {
+		
+	
+	if ($_FILES['media']['name'][0] != "") {
+		$countfiles = count($_FILES['media']['name']);
+	}
+	else {
+		$countfiles = 0;
+	}
+	
+
 	try {
 		$dbConnect->beginTransaction();
     	$sql = $dbConnect->prepare("UPDATE posts set commentaire = '".$newCommentaire."'");   
-    	$sql->execute();
-    	$dbConnect->commit();
-	} catch (Exception $e) {
-		$dbConnect->rollback();
-		throw $e;
-		} 
+		$sql->execute();
+
+		if ($countfiles > 0) {
+			for ($i = 0; $i < $countfiles; $i++) {
+				
+				$filename =  $_SESSION['idPost'] . "_" . $_FILES['media']['name'][$i];
+				$extension = strrchr($_FILES['media']['name'][$i], '.');
+				$mediaType = $_FILES['media']['type'][$i];
+				if (in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
+		
+					move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
+				
+				$sql = "INSERT INTO medias (typeMedia, nomMedia, idPosts)
+					VALUES ('$mediaType', '$filename', '$idPost')";
+		
+				$dbConnect->exec($sql);
+			}
+		}
+		$dbConnect->commit();
 		header('Location: Home.php');
-		exit;  
+		exit;
+		} catch (Exception $e) {
+			$dbConnect->rollback();
+			throw $e;
+		} 
+	}	  
 }
 
 $dbConnect->beginTransaction();
@@ -98,18 +131,7 @@ $dbConnect->beginTransaction();
 								</li>
 
 							</ul>
-							<ul class="nav navbar-nav navbar-right">
-								<li class="dropdown">
-									<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i></a>
-									<ul class="dropdown-menu">
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-										<li><a href="">More</a></li>
-									</ul>
-								</li>
-							</ul>
+							
 						</nav>
 					</div>
 					<!-- /top nav -->
@@ -148,7 +170,7 @@ $dbConnect->beginTransaction();
 										</div>
 									</div>
 									<div class="well">
-										<form class="form-horizontal" method="post" action="Modifier.php" enctype="multipart/form-data" role="form">
+										<form class="form-horizontal" method="post" action="Modifier.php?id=<?php echo $_SESSION['idPost'] ?>" enctype="multipart/form-data" role="form">
 											<h4>Veuillez choisir</h4>
 											<div class="form-group" style="padding:14px;">
 												<textarea class="form-control" placeholder="<?php echo $fetch['commentaire'];?>" name="commentaire"></textarea>
@@ -157,18 +179,18 @@ $dbConnect->beginTransaction();
                                             foreach ($fetchall as $key => $files) {   
                                                 if (in_array($files['typeMedia'], $extensionsImage)) {
 													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/" . $files['nomMedia'] . "\" alt=\"post\" >
-													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a><br>";
 												
 												}
 												elseif (in_array($files['typeMedia'], $extensionsVideo)){
 													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
 													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia'] . "\"></video>
-													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src	=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a><br>";
 												}
 												elseif (in_array($files['typeMedia'], $extensionsSon)) {
 													echo "<audio style=\"margin-left: 10px;\" controls>
 													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia']. "\"></audio>
-													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>";
+													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a><br>";
 												}
                                             }
                                             ?>
