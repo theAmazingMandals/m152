@@ -1,12 +1,13 @@
 <?php
-$extensions = array('.png', '.gif', '.jpg', '.jpeg', '.PNG', '.GIF', '.JPG', '.JPEG', '.mp3', '.avi', '.mp4');
-$dossier = './medias/';
-$commentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
+require_once('/DbFunctions.php');
 $servername = "localhost";
 $username = "m152";  
 $password = "Super";
 $dbname = "m152";
-$lastId = "";
+
+$commentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
+
+
 
 if (isset($_FILES['media'])) {
 
@@ -20,39 +21,19 @@ if (isset($_FILES['media'])) {
 	if ($commentaire == "") {
 		$commentaire = "Nouveau post";
 	}
-	try {
-		$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-		$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	} catch (Exception $e) {
-		die("Impossible de se connecter à la base : " . $e->getMessage());
-	}
+
+	$dbConnect = createConnection($servername, $dbname, $username, $password);
 	
 	try {
-		$dbConnect->beginTransaction();
-		$sql = "INSERT INTO posts (commentaire)
-		VALUES ('$commentaire')";
-		$dbConnect->exec($sql);
-
-		if ($lastId == "") {
-			$lastId = $dbConnect->lastInsertId();
-		}
-		$dbConnect->commit();
+	$dbConnect->beginTransaction();
+	$lastId = insertNewPost($dbConnect, $commentaire);
 	
 	
 	if ($countfiles > 0) {
 		for ($i = 0; $i < $countfiles; $i++) {
 
-			$filename =  $lastId . "_" . $_FILES['media']['name'][$i];
-			$extension = strrchr($_FILES['media']['name'][$i], '.');
-			$mediaType = $_FILES['media']['type'][$i];
-			if (in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
-	
-				move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
+			insertMediaByPost($dbConnect, $_FILES, $lastId, $i);
 			
-			$sql = "INSERT INTO medias (typeMedia, nomMedia, idPosts)
-				VALUES ('$mediaType', '$filename', '$lastId')";
-	
-			$dbConnect->exec($sql);
 		}
 	}
 	} catch (Exception $e) {
@@ -60,7 +41,7 @@ if (isset($_FILES['media'])) {
 	throw $e;
 	}
 
-	$conn = null;
+	$dbConnect = null;
 	
 	header('Location: Home.php');
 	exit;

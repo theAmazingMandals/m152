@@ -1,25 +1,23 @@
 <?php
 session_start();
-$extensions = array('.png', '.gif', '.jpg', '.jpeg', '.PNG', '.GIF', '.JPG', '.JPEG', '.mp3', '.avi', '.mp4');
+require_once('/DbFunctions.php');
+
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
-$dossier = './medias/';
+
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
+
 $idPost = filter_input(INPUT_GET, "id", FILTER_SANITIZE_STRING);
 $newCommentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
 
 $_SESSION['idPost'] = $idPost;
 
-try {
-    $dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (Exception $e) {
-    die("Impossible de se connecter à la base : " . $e->getMessage());
-}
+
+$dbConnect = createConnection($servername, $dbname, $username, $password);
 
 if (isset($_POST)) {
 
@@ -36,23 +34,12 @@ if (isset($_POST)) {
 
 	try {
 		$dbConnect->beginTransaction();
-    	$sql = $dbConnect->prepare("UPDATE posts set commentaire = '".$newCommentaire."'");   
-		$sql->execute();
+    	updatePostName($dbConnect, $idPost, $newCommentaire);
 
 		if ($countfiles > 0) {
 			for ($i = 0; $i < $countfiles; $i++) {
 				
-				$filename =  $_SESSION['idPost'] . "_" . $_FILES['media']['name'][$i];
-				$extension = strrchr($_FILES['media']['name'][$i], '.');
-				$mediaType = $_FILES['media']['type'][$i];
-				if (in_array($extension, $extensions)) //Si l'extension n'est pas dans le tableau
-		
-					move_uploaded_file($_FILES['media']['tmp_name'][$i], $dossier . $filename);
-				
-				$sql = "INSERT INTO medias (typeMedia, nomMedia, idPosts)
-					VALUES ('$mediaType', '$filename', '$idPost')";
-		
-				$dbConnect->exec($sql);
+				insertMediaByPost($dbConnect, $_FILES, $idPost, $i);
 			}
 		}
 		$dbConnect->commit();
@@ -64,17 +51,9 @@ if (isset($_POST)) {
 		} 
 	}	  
 }
+	$post = getPostById($dbConnect, $idPost);
 
-$dbConnect->beginTransaction();
-    $sql = $dbConnect->prepare("SELECT idMedias, nomMedia, typeMedia from medias where idPosts = '".$idPost."'");   
-    $sql->execute();
-    $fetchall = $sql->fetchAll();
-
-    
-    $sql = $dbConnect->prepare("SELECT commentaire from posts where idPosts = '".$idPost."'");   
-    $sql->execute();
-    $fetch = $sql->fetch();
-    
+	$allMediaInPost = getAllMediaByIdPost($dbConnect, $idPost); 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,10 +152,10 @@ $dbConnect->beginTransaction();
 										<form class="form-horizontal" method="post" action="Modifier.php?id=<?php echo $_SESSION['idPost'] ?>" enctype="multipart/form-data" role="form">
 											<h4>Veuillez choisir</h4>
 											<div class="form-group" style="padding:14px;">
-												<textarea class="form-control" placeholder="<?php echo $fetch['commentaire'];?>" name="commentaire"></textarea>
+												<textarea class="form-control" placeholder="<?php echo $post['commentaire'];?>" name="commentaire"></textarea>
                                             </div>
                                             <?php 
-                                            foreach ($fetchall as $key => $files) {   
+                                            foreach ($allMediaInPost as $key => $files) {   
                                                 if (in_array($files['typeMedia'], $extensionsImage)) {
 													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/" . $files['nomMedia'] . "\" alt=\"post\" >
 													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a><br>";

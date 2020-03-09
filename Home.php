@@ -1,27 +1,25 @@
 <?php
+require_once('/DbFunctions.php');
+
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
+
 $img = "";
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
 
 
-$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-$dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$sql = $dbConnect->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts ORDER BY creationDate DESC");
-$sql->execute();
-$posts = $sql->fetchAll();
+$dbConnect = createConnection($servername, $dbname, $username, $password);
 
-$sql = $dbConnect->prepare("SELECT medias.idPosts, medias.nomMedia, medias.typeMedia  FROM posts, medias WHERE medias.idPosts = posts.idPosts");
-$sql->execute();
-$media = $sql->fetchAll();
+$allPosts = getAllPostInDb($dbConnect);
 
-
+$allMedias = getAllMediaInDb($dbConnect);
 
 $dbConnect = null;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +117,7 @@ $dbConnect = null;
 									</div>
 									
 									<?php
-									foreach ($posts as $key => $data) {
+									foreach ($allPosts as $key => $data) {
 										$idPosts = $data['idPosts'];
 										$commentaire = $data['commentaire'];
 										$creationDate = $data['creationDate'];
@@ -129,7 +127,7 @@ $dbConnect = null;
 										
 										<h2 style=\"margin-left: 10px;\">$commentaire | $creationDate</h2>";
 										
-										foreach ($media as $key => $data) {
+										foreach ($allMedias as $key => $data) {
 											
 											$nomMedia = $data['nomMedia'];
 											$typeMedia = $data['typeMedia'];

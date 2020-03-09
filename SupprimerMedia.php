@@ -1,36 +1,25 @@
 <?php
 session_start();
+require_once('/DbFunctions.php');
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
 $idMedia = filter_input(INPUT_GET, "id", FILTER_SANITIZE_STRING);
 
-try {
-    $dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (Exception $e) {
-    die("Impossible de se connecter à la base : " . $e->getMessage());
-}
+$dbConnect = createConnection($servername, $dbname, $username, $password);
 
 try {
     $dbConnect->beginTransaction();
-    $sql = $dbConnect->prepare("SELECT nomMedia from medias where idMedias = '".$idMedia."'");   
-    $sql->execute();
-    $allFiles = $sql->fetchAll();
-    foreach ($allFiles as $key => $files) {   
+    
+    $media = getMediaById($dbConnect, $idMedia);
+
+    foreach ($media as $key => $files) {   
         
         unlink("medias/" . $files['nomMedia']);
     }
     
-    
-    $sql = "DELETE from medias where idMedias = '".$idMedia."'";
-    
-    $dbConnect->exec($sql);
-
-    
-
-    $dbConnect->commit();
+    deleteMediaById($dbConnect, $idMedia);
     
 } catch (Exception $e) {
 $dbConnect->rollback();
