@@ -1,4 +1,13 @@
 <?php
+/*
+Auteur : Christian Russo
+Classe : I.FA-P3A
+Date : 2ème semestre année terminale 2019-2020
+Projet : Facebook like en php pour le module m152
+Version : 1.0
+Description : Fichier contenant toutes les fonctions nécessaires à la connection à la bdd et au bon fonctionnement du programme
+*/
+//Crée la connection vers la bdd
 function createConnection($servername, $dbname, $username, $password) {
     try {
 		$dbConnect = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
@@ -9,7 +18,7 @@ function createConnection($servername, $dbname, $username, $password) {
 
 	return $dbConnect;
 }
-
+//Insère un nouveau post
 function insertNewPost($connection, $commentaire) {
 
 	$lastId = 0;
@@ -25,6 +34,7 @@ function insertNewPost($connection, $commentaire) {
 
 		return $lastId;
 }
+//Insère un média à partir d'un idPost
 function insertMediaByPost($connection, $data, $lastId, $numberInList) {
 
 	$dossier = './medias/';
@@ -42,6 +52,7 @@ function insertMediaByPost($connection, $data, $lastId, $numberInList) {
 	
 			$connection->exec($sql);
 }
+//Récupère tous les posts dans la bdd
 function getAllPostInDb($connection) {
 	$sql = $connection->prepare("SELECT idPosts, commentaire, creationDate, modificationDate FROM posts ORDER BY creationDate DESC");
 	$sql->execute();
@@ -49,6 +60,7 @@ function getAllPostInDb($connection) {
 
 	return $posts;
 }
+//Récupère tous les médias dans la bdd
 function getAllMediaInDb($connection) {
 	$sql = $connection->prepare("SELECT medias.idPosts, medias.nomMedia, medias.typeMedia  FROM posts, medias WHERE medias.idPosts = posts.idPosts");
 	$sql->execute();
@@ -56,6 +68,7 @@ function getAllMediaInDb($connection) {
 
 	return $media;
 }
+//Supprime un post
 function deletePost($connection, $idPost) {
 
 	$sql = $connection->prepare("SELECT nomMedia from medias where idPosts = '".$idPost."'");   
@@ -68,11 +81,13 @@ function deletePost($connection, $idPost) {
 	$connection->exec($sql);
     $connection->commit();
 }
+//Met à jour le commentaire d'un post
 function updatePostName($connection, $idPost, $newCommentaire) {
 	$sql = $connection->prepare("UPDATE posts set commentaire = '".$newCommentaire."' where idPosts = '".$idPost."'");   
 	$sql->execute();
 
 }
+//Récupère un post à partir d'un id
 function getPostById($connection, $idPost) {
 	$sql = $connection->prepare("SELECT commentaire from posts where idPosts = '".$idPost."'");   
     $sql->execute();
@@ -80,6 +95,7 @@ function getPostById($connection, $idPost) {
 	
 	return $fetch;
 }
+//Récupère tous les médias d'un post
 function getAllMediaByIdPost($connection, $idPost) {
 	$sql = $connection->prepare("SELECT idMedias, nomMedia, typeMedia from medias where idPosts = '".$idPost."'");   
     $sql->execute();
@@ -87,6 +103,7 @@ function getAllMediaByIdPost($connection, $idPost) {
 	
 	return $fetchall;
 }
+//Récupère un média à partir d'un id
 function getMediaById($connection, $idMedia) {
 	$sql = $connection->prepare("SELECT nomMedia from medias where idMedias = '".$idMedia."'");   
     $sql->execute();
@@ -94,6 +111,7 @@ function getMediaById($connection, $idMedia) {
 	
 	return $media;
 }
+//Supprime un média à partir d'un id
 function deleteMediaById($connection, $idMedia) {
 
 	$sql = "DELETE from medias where idMedias = '".$idMedia."'";   

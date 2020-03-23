@@ -1,37 +1,51 @@
 <?php
+/*
+Auteur : Christian Russo
+Classe : I.FA-P3A
+Date : 2ème semestre année terminale 2019-2020
+Projet : Facebook like en php pour le module m152
+Version : 1.0
+Description : Fichier comportant les fonctionnalités pour créer un post, formulaire d'ajout de média et textbox.
+*/
+//Nécessite le fichier des fonctions
 require_once('/DbFunctions.php');
+//Déclaration des variables de connections à la bdd et de récupération de l'id
 $servername = "localhost";
 $username = "m152";  
 $password = "Super";
 $dbname = "m152";
-
+//Récupère le texte 
 $commentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
 
 
 
 if (isset($_FILES['media'])) {
 
-	
+	//Compte le nombre de fichier rentrés par l'utilisateur
 	if ($_FILES['media']['name'][0] != "") {
 		$countfiles = count($_FILES['media']['name']);
 	}
 	else {
 		$countfiles = 0;
 	}
+	//Si il n'y a pas de commentaire, en met un par défaut
 	if ($commentaire == "") {
 		$commentaire = "Nouveau post";
 	}
-
+	//Créer la connection
 	$dbConnect = createConnection($servername, $dbname, $username, $password);
 	
 	try {
+	//Commence la transaction
 	$dbConnect->beginTransaction();
+	//Ajoute un nouveau post et récupère son id
 	$lastId = insertNewPost($dbConnect, $commentaire);
 	
-	
+	//Si il y a un média
 	if ($countfiles > 0) {
+		//Pour chaque média
 		for ($i = 0; $i < $countfiles; $i++) {
-
+			//Ajoute le média avec l'idPost
 			insertMediaByPost($dbConnect, $_FILES, $lastId, $i);
 			
 		}
@@ -40,9 +54,9 @@ if (isset($_FILES['media'])) {
 	$dbConnect->rollback();
 	throw $e;
 	}
-
+	//Ferme la connection
 	$dbConnect = null;
-	
+	//Redirige sur home.php
 	header('Location: Home.php');
 	exit;
 }

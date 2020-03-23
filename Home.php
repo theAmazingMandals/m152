@@ -1,23 +1,31 @@
 <?php
+/*
+Auteur : Christian Russo
+Classe : I.FA-P3A
+Date : 2ème semestre année terminale 2019-2020
+Projet : Facebook like en php pour le module m152
+Version : 1.0
+Description : Page Home qui sert de page d'accueil et affiche tous les posts se trouvant dans la bdd
+*/
+//Nécessite le fichier de fonctions
 require_once('/DbFunctions.php');
-
+//Déclaration des variables de connection
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
-
-$img = "";
+//Déclaration des tableaux de type de médias
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
 
-
+//Créer la connection
 $dbConnect = createConnection($servername, $dbname, $username, $password);
-
+//Récupère tous les posts de la dbb
 $allPosts = getAllPostInDb($dbConnect);
-
+//Récupère tous les média de la db
 $allMedias = getAllMediaInDb($dbConnect);
-
+//Ferme la connection
 $dbConnect = null;
 
 ?>
@@ -112,33 +120,35 @@ $dbConnect = null;
 
 										<div class="panel-body">
 											<h1>WELCOME</h1>
-										</div>
+										</div>	
 
 									</div>
 									
 									<?php
+									//Pour chaque post que l'on a récupérer
 									foreach ($allPosts as $key => $data) {
+										//On récupère son id, son commentaire et ses dates de création/modification
 										$idPosts = $data['idPosts'];
 										$commentaire = $data['commentaire'];
 										$creationDate = $data['creationDate'];
 										$modificationDate = $data['modificationDate'];
-
+										//On affiche les balises avec le commentaire et la date de création
 										echo "<div class=\"panel panel-default\">
 										
 										<h2 style=\"margin-left: 10px;\">$commentaire | $creationDate</h2>";
-										
+										//Pour tous les média que l'on a récupérer
 										foreach ($allMedias as $key => $data) {
-											
+											//On récupère son nom, son type et sa clé étrangère
 											$nomMedia = $data['nomMedia'];
 											$typeMedia = $data['typeMedia'];
 											$FKidPosts = $data['idPosts'];
-											
+											//Si l'id du post actuel est égal à la clé étrangère affiche le média selon son type
 											if ($idPosts == $FKidPosts) {
 												if (in_array($typeMedia, $extensionsImage)) {
 													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/$nomMedia\" alt=\"post\" ><br>";
 												}
 												elseif (in_array($typeMedia, $extensionsVideo)){
-													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
+													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" loop=\"true\" controls autoplay>
 													<source src=\"medias/$nomMedia\" type=\"$typeMedia\">			  
 												  </video><br>";
 												}
@@ -151,7 +161,7 @@ $dbConnect = null;
 											}
 										}
 										
-										
+										//Affiche les boutons qui font lien sur la modification et la suppression du post
 										echo "<div class=\"panel-body\">
 										<a href=\"Supprimer.php?id=$idPosts\"><img src=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a>
 										<a href=\"Modifier.php?id=$idPosts\"><img src=\"./assets/img/modifier.png\" alt=\"Modifier\"/></a>

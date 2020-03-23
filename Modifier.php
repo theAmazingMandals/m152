@@ -1,29 +1,41 @@
 <?php
+/*
+Auteur : Christian Russo
+Classe : I.FA-P3A
+Date : 2ème semestre année terminale 2019-2020
+Projet : Facebook like en php pour le module m152
+Version : 1.0
+Description : Fichier proposant de modifier le post choisi dans la page d'accueil, possibilités de modifier le texte, supprimer ou ajouter un média.
+*/
+//Commence la session
 session_start();
+//Nécessite le fichier des fonctions
 require_once('/DbFunctions.php');
-
+//Déclaration des tableau des types de média
 $extensionsImage = array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/PNG', 'image/GIF', 'image/JPG', 'image/JPEG');
 $extensionsSon = array('audio/mp3');
 $extensionsVideo = array( 'video/avi', 'video/mp4');
-
+//Déclaration des variables de connection
 $servername = "localhost";
 $username = "m152";
 $password = "Super";
 $dbname = "m152";
-
+//Récupère l'idPost
 $idPost = filter_input(INPUT_GET, "id", FILTER_SANITIZE_STRING);
+//Récupère le nouveau commentaire
 $newCommentaire = filter_input(INPUT_POST, "commentaire", FILTER_SANITIZE_STRING);
-
+//Stocke idPost en session
 $_SESSION['idPost'] = $idPost;
 
-
+//Crée la connection
 $dbConnect = createConnection($servername, $dbname, $username, $password);
 
 if (isset($_POST)) {
 
+	//Si il y a eu des modifications
 	if ($newCommentaire != "" || $_FILES['media'] != null) {
 		
-	
+	//Compte le nombre de média
 	if ($_FILES['media']['name'][0] != "") {
 		$countfiles = count($_FILES['media']['name']);
 	}
@@ -33,15 +45,19 @@ if (isset($_POST)) {
 	
 
 	try {
+		//Commence la transaction
 		$dbConnect->beginTransaction();
+		//Met à jour le commentaire du post
     	updatePostName($dbConnect, $idPost, $newCommentaire);
-
+		//Si il y a un média à ajouter
 		if ($countfiles > 0) {
+			//Pour chaque média
 			for ($i = 0; $i < $countfiles; $i++) {
-				
+				//Ajoute le média au post correspondant
 				insertMediaByPost($dbConnect, $_FILES, $idPost, $i);
 			}
 		}
+		//Applique les changements et redirige vers home.php
 		$dbConnect->commit();
 		header('Location: Home.php');
 		exit;
@@ -51,8 +67,9 @@ if (isset($_POST)) {
 		} 
 	}	  
 }
+	//récupère le post avec l'id pris en get
 	$post = getPostById($dbConnect, $idPost);
-
+	//Récupère tous les médias du $post
 	$allMediaInPost = getAllMediaByIdPost($dbConnect, $idPost); 
 ?>
 <!DOCTYPE html>
@@ -154,7 +171,8 @@ if (isset($_POST)) {
 											<div class="form-group" style="padding:14px;">
 												<textarea class="form-control" placeholder="<?php echo $post['commentaire'];?>" name="commentaire"></textarea>
                                             </div>
-                                            <?php 
+											<?php 
+											//Pour chaque média du post affiche une image si son type est une image, un audio si c'est un type audio et une vidéo si son type est vidéo
                                             foreach ($allMediaInPost as $key => $files) {   
                                                 if (in_array($files['typeMedia'], $extensionsImage)) {
 													echo "<img style=\"margin-left: 10px;\" width=\"400\" height=\"400\" src=\"medias/" . $files['nomMedia'] . "\" alt=\"post\" >
@@ -162,7 +180,7 @@ if (isset($_POST)) {
 												
 												}
 												elseif (in_array($files['typeMedia'], $extensionsVideo)){
-													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" controls>
+													echo "<video style=\"margin-left: 10px;\" width=\"400\" height=\"400\" loop=\"true\" controls autoplay>
 													<source src=\"medias/" . $files['nomMedia'] . "\" type=\"" . $files['typeMedia'] . "\"></video>
 													<a href=\"SupprimerMedia.php?id=" . $files['idMedias'] . "\"><img src	=\"./assets/img/supprimer.png\" alt=\"Supprimer\"/></a><br>";
 												}
